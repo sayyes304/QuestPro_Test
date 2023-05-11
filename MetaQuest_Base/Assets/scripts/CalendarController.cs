@@ -18,15 +18,23 @@ public class CalendarController : MonoBehaviour
     private DateTime _dateTime;
     public static CalendarController _calendarInstance;
 
-    public Text SelectDate_Title, SelectDate_Body;
+    public Text SelectDate_DateInfo;
 
+
+    // 
     public string Daily_day;
     public GameObject Date_Title, Title;
+
+    public bool isDateClicked = false;
+    public GameObject Write_Plan;
+
+    public string Clickedday;
 
     void Start()
     {
         Date_Title.SetActive(false);
         Title.SetActive(true);
+        Write_Plan.SetActive(false);
 
         _calendarInstance = this;
         Vector3 startPos = _item.transform.localPosition;
@@ -49,11 +57,11 @@ public class CalendarController : MonoBehaviour
 
         CreateCalendar();
 
-        _calendarPanel.SetActive(false);
+        ShowCalendar(SelectDate_DateInfo);
 
-        ShowCalendar(SelectDate_Title);
     }
 
+    #region CalenderBasic(Create, Prev, Next Button)
     void CreateCalendar()
     {
         DateTime firstDay = _dateTime.AddDays(-(_dateTime.Day - 1));
@@ -79,6 +87,16 @@ public class CalendarController : MonoBehaviour
         }
         _yearNumText.text = _dateTime.Year.ToString();
         _monthNumText.text = _dateTime.Month.ToString("D2");
+
+        Transform[] childObjects = gameObject.GetComponentsInChildren<Transform>(true);
+
+        foreach (Transform child in childObjects)
+        {
+            if (child.gameObject.name == "Daily_text(Clone)")
+            {
+                child.parent.gameObject.SetActive(child.parent.name.Contains(_dateTime.Year.ToString() + "-" + _dateTime.Month.ToString("D2")));
+            }
+        }
     }
 
     int GetDays(DayOfWeek day)
@@ -120,6 +138,9 @@ public class CalendarController : MonoBehaviour
         CreateCalendar();
     }
 
+    #endregion
+
+    // RegisterPlan_Btn
     public void ShowCalendar(Text target)
     {
         _calendarPanel.SetActive(true);
@@ -127,23 +148,75 @@ public class CalendarController : MonoBehaviour
 
         Date_Title.SetActive(false);
         Title.SetActive(true);
-
-        //_calendarPanel.transform.position = new Vector3(965, 475, 0);//Input.mousePosition-new Vector3(0,120,0);
+        Write_Plan.SetActive(false);
     }
 
     Text _target;
 
-    //Item 클릭했을 경우 Text에 표시.
-    public void OnDateItemClick(string day)
+    public GameObject Daily;
+    public GameObject DailyText;
+    public GameObject DailyLine;
+    public Transform DailyPlan_Parent;
+    public InputField InputPlan;
+    public void CreateDateObj()
     {
-        _target.text = _yearNumText.text + "-" + _monthNumText.text + "-" + int.Parse(day).ToString("D2");
-        Daily_day = _yearNumText.text + "-" + _monthNumText.text + "-" + int.Parse(day).ToString("D2");
+        if(InputPlan.text != "")
+        {
+            // 일정 object 생성
+            GameObject Day_Daily = Instantiate(Daily, DailyPlan_Parent);
+            Day_Daily.transform.name = Clickedday;
+            // 일정 text 생성
+            GameObject DailyPlan = Instantiate(DailyText, Day_Daily.transform);
+            DailyPlan.GetComponent<Text>().text = InputPlan.text;
 
-        Date_Title.GetComponent<Text>().text = Daily_day;
+            //일정 생성 완료 표시 
+            GameObject Dailyline = Instantiate(DailyLine, Day_Daily.transform);
+            
+            InputPlan.text = "";
+        }
+
+    }
+
+    public void CancelButton()
+    {
+        _calendarPanel.SetActive(true);
+
+        Date_Title.SetActive(false);
+        Title.SetActive(true);
+        Write_Plan.SetActive(false);
+
+        InputPlan.text = "";
+    }
+
+    public void AddButtonClick()
+    {
+        isDateClicked = false;
+
+        Date_Title.GetComponent<Text>().text = Clickedday;
         Date_Title.SetActive(true);
 
         Title.SetActive(false);
-
+        Write_Plan.SetActive(true);
         _calendarPanel.SetActive(false);
+    }
+
+
+    //Item 클릭했을 경우 Text에 표시
+    public void OnDateItemClick(string day)
+    {
+        isDateClicked = true;
+        DailyText.SetActive(false);
+        Clickedday = _yearNumText.text + "-" + _monthNumText.text + "-" + int.Parse(day).ToString("D2");
+        _target.text = Clickedday;
+
+        Transform[] childObjects = gameObject.GetComponentsInChildren<Transform>(true);
+
+        foreach (Transform child in childObjects)
+        {
+            if (child.gameObject.name == "Daily_text(Clone)")
+            {
+                child.gameObject.SetActive(child.parent.name == Clickedday);
+            }
+        }
     }
 }
