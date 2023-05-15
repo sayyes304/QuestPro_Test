@@ -1,5 +1,5 @@
 sceneSetups:
-- path: Assets/TestScenes/Keyboard/Calender.unity
+- path: Assets/MyAsset/STT_Wit.at/Voice_Memo.unity
   isLoaded: 1
   isActive: 1
   isSubScene: 0
